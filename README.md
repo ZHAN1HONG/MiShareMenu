@@ -89,12 +89,13 @@ Get-AppxPackage -Name MiShareMenu.Extension | Remove-AppxPackage
 | 版本 | `1.2.0.2` |
 | 发布者 | `CN=ZHAN丶HONG` |
 | 架构 | x64 |
-| 签名 | 自签名证书（安装时需导入本机信任库） |
+| 签名 | 自签名证书 `CN=ZHAN丶HONG`，有效期 2020-01-01 ~ 2045-01-01（不受时钟偏差影响） |
 
 ## 文件校验
 
 ```
-MD5  9b16499016ae1c40b9d77b758678f11e  MiShareMenu.msix
+MD5     40bbdf6b944d5d5d1d6dbf6970fd3b83  MiShareMenu.msix
+SHA256  96d635291075f5545e3c8c924ff9d77412c4b4ebe24b1af0de931294f9e04a29  MiShareMenu.msix
 ```
 
 ## 常见问题
@@ -104,6 +105,9 @@ A：先确认小米电脑管家能正常打开「小米互传」并传一次文�
 
 **Q：安装报 0x800B0109 / 证书不受信任？**
 A：以管理员身份重新运行 `MiShareMenu.cmd`，让它把证书装进 `LocalMachine\Root`。
+
+**Q：安装报 0x800B0101 / 证书不在有效期内？**
+A：签名的自签证书有效期为 2020-01-01 ~ 2045-01-01，正常时钟不会触发。若仍报此错，说明目标机器时间被改到了 2020 年之前，先同步系统时间：管理员运行 `w32tm /resync /force`。
 
 **Q：能在 Windows 10 上用吗？**
 A：不行。一级右键菜单扩展和 MSIX 的 `fileExplorerContextMenus` 只有 Windows 11 支持。
