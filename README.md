@@ -9,14 +9,14 @@
 
 | 地址 | 说明 |
 |---|---|
-| [**Release v1.2.0.2**](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v1.2.0.2/MiShareMenu.msix) | GitHub 直链，`curl -L` 可用 |
-| `https://cdn.jsdelivr.net/gh/ZHAN1HONG/MiShareMenu@68eb5193c270418f576e7f3c875976d576ea0fb0/MiShareMenu.msix` | jsDelivr CDN，国内更快 |
+| [**Release v9.9.9.9**](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu.msix) | GitHub 直链，`curl -L` 可用 |
+| `https://cdn.jsdelivr.net/gh/ZHAN1HONG/MiShareMenu/MiShareMenu.msix` | jsDelivr CDN，国内更快 |
 
 脚本里直接下载（含校验）：
 
 ```bat
 curl.exe -L --fail --retry 3 -o MiShareMenu.msix ^
-  https://cdn.jsdelivr.net/gh/ZHAN1HONG/MiShareMenu@68eb5193c270418f576e7f3c875976d576ea0fb0/MiShareMenu.msix
+  https://cdn.jsdelivr.net/gh/ZHAN1HONG/MiShareMenu/MiShareMenu.msix
 ```
 
 ## 特性
@@ -86,7 +86,7 @@ Get-AppxPackage -Name MiShareMenu.Extension | Remove-AppxPackage
 | 字段 | 值 |
 |---|---|
 | 包名 | `MiShareMenu.Extension` |
-| 版本 | `1.2.0.2` |
+| 版本 | `9.9.9.9` |
 | 发布者 | `CN=ZHAN丶HONG` |
 | 架构 | x64 |
 | 签名 | 自签名证书 `CN=ZHAN丶HONG`，有效期 2020-01-01 ~ 2045-01-01（不受时钟偏差影响） |
@@ -94,8 +94,8 @@ Get-AppxPackage -Name MiShareMenu.Extension | Remove-AppxPackage
 ## 文件校验
 
 ```
-MD5     40bbdf6b944d5d5d1d6dbf6970fd3b83  MiShareMenu.msix
-SHA256  96d635291075f5545e3c8c924ff9d77412c4b4ebe24b1af0de931294f9e04a29  MiShareMenu.msix
+MD5     3e6d296841c3860b7f07f2bfcbf1f00c  MiShareMenu.msix
+SHA256  aff542ab664c477667a47442ed303239e83fb77c15471dc83e58c80b7bb7fd98  MiShareMenu.msix
 ```
 
 ## 常见问题
