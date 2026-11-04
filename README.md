@@ -5,6 +5,20 @@
 
 > 非小米官方项目，仅做菜单入口转发；传输本身完全由小米电脑管家的「小米互传」负责。
 
+## 下载
+
+| 地址 | 说明 |
+|---|---|
+| [**Release v1.2.0.2**](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v1.2.0.2/MiShareMenu.msix) | GitHub 直链，`curl -L` 可用 |
+| `https://cdn.jsdelivr.net/gh/ZHAN1HONG/MiShareMenu@v1.2.0.2/MiShareMenu.msix` | jsDelivr CDN，国内更快 |
+
+脚本里直接下载（含校验）：
+
+```bat
+curl.exe -L --fail --retry 3 -o MiShareMenu.msix ^
+  https://cdn.jsdelivr.net/gh/ZHAN1HONG/MiShareMenu@v1.2.0.2/MiShareMenu.msix
+```
+
 ## 特性
 
 - **一级菜单**：出现在右键第一层，不用点「显示更多选项」
