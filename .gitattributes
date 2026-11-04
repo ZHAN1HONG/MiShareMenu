@@ -1,0 +1,5 @@
+*.msix binary
+*.png binary
+*.ico binary
+*.cmd -text
+*.ps1 -text
