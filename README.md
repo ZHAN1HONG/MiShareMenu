@@ -10,13 +10,13 @@
 | 地址 | 说明 |
 |---|---|
 | [**Release v1.2.0.2**](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v1.2.0.2/MiShareMenu.msix) | GitHub 直链，`curl -L` 可用 |
-| `https://cdn.jsdelivr.net/gh/ZHAN1HONG/MiShareMenu@v1.2.0.2/MiShareMenu.msix` | jsDelivr CDN，国内更快 |
+| `https://cdn.jsdelivr.net/gh/ZHAN1HONG/MiShareMenu@68eb5193c270418f576e7f3c875976d576ea0fb0/MiShareMenu.msix` | jsDelivr CDN，国内更快 |
 
 脚本里直接下载（含校验）：
 
 ```bat
 curl.exe -L --fail --retry 3 -o MiShareMenu.msix ^
-  https://cdn.jsdelivr.net/gh/ZHAN1HONG/MiShareMenu@v1.2.0.2/MiShareMenu.msix
+  https://cdn.jsdelivr.net/gh/ZHAN1HONG/MiShareMenu@68eb5193c270418f576e7f3c875976d576ea0fb0/MiShareMenu.msix
 ```
 
 ## 特性
