@@ -9,18 +9,20 @@
 
 | 地址 | 说明 |
 |---|---|
-| [**Release v9.9.9.10**](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.10/MiShareMenu.msix) | **支持小米电脑管家 6.0**，推荐 |
-| [旧版 v9.9.9.9](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu.msix) | 仅适配 6.0 以下管家，保留备查 |
+| [**Release v9.9.9.9**](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu.msix) | **支持小米电脑管家 6.0**，推荐 |
+| [旧版 v6.6.6.6](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v6.6.6.6/MiShareMenu.msix) | 仅适配 6.0 以下管家，保留备查 |
 | `https://cdn.jsdelivr.net/gh/ZHAN1HONG/MiShareMenu/MiShareMenu.msix` | jsDelivr CDN，始终指向最新版，国内更快 |
 
 ## 版本兼容
 
 | 小米电脑管家版本 | 投递方式 | 状态 |
 |---|---|---|
-| 6.0 及以上 | 共享内存 `Local\MiDropFileMappingObject` + `--contextmenu_dropfile=1` 启动管家 | ✅ v9.9.9.10 起支持 |
+| 6.0 及以上 | 共享内存 `Local\MiDropFileMappingObject` + `--contextmenu_dropfile=1` 启动管家 | ✅ v9.9.9.9 支持 |
 | 5.x / 4.x | `WM_COPYDATA` 投递到管家消息窗口 | ✅ 一直支持 |
 
-v9.9.9.9 及更早版本在 6.0 上会表现为「菜单能点、但点了没反应」——因为 6.0 不再响应旧的 `WM_COPYDATA` 通道。升级到 v9.9.9.10 即可解决，无需卸载旧版，直接覆盖安装。
+v6.6.6.6 及更早版本在 6.0 上会表现为「菜单能点、但点了没反应」——因为 6.0 不再响应旧的 `WM_COPYDATA` 通道。升级到 v9.9.9.9 即可解决。
+
+> 版本号体系说明：旧版发布时曾占用过 `v9.9.9.9` tag，现已整体迁到 `v6.6.6.6`；如之前装过 `9.9.9.10` 的过渡版本，用 `MiShareMenu.cmd` 安装会自动卸载旧版再装新版。
 
 脚本里直接下载（含校验）：
 
@@ -96,7 +98,7 @@ Get-AppxPackage -Name MiShareMenu.Extension | Remove-AppxPackage
 | 字段 | 值 |
 |---|---|
 | 包名 | `MiShareMenu.Extension` |
-| 版本 | `9.9.9.10` |
+| 版本 | `9.9.9.9` |
 | 发布者 | `CN=ZHAN丶HONG` |
 | 架构 | x64 |
 | 签名 | 自签名证书 `CN=ZHAN丶HONG`，有效期 2020-01-01 ~ 2045-01-01（不受时钟偏差影响） |
@@ -104,14 +106,14 @@ Get-AppxPackage -Name MiShareMenu.Extension | Remove-AppxPackage
 ## 文件校验
 
 ```
-MD5     b00fefab33c8715a80ef37ff1aaeb58d  MiShareMenu.msix
-SHA256  99c7d586cc912f4f51b08fe66401710017babaaf4a9c5e87ddcf79ba820103c5  MiShareMenu.msix
+MD5     290a0c768403c95fa13b78696bce7167  MiShareMenu.msix
+SHA256  53aaa7a7d88d956624bf2579824f0756ac7bbb6a4b3a8c252860c528d92075a9  MiShareMenu.msix
 ```
 
 ## 常见问题
 
 **Q：菜单出现了，但点击没反应？**
-A：先确认小米电脑管家能正常打开「小米互传」并传一次文件。如果管家已经升到 **6.0**，请安装 v9.9.9.10 及以上（6.0 不再响应旧的 `WM_COPYDATA` 通道，旧版点击会静默无反应）。
+A：先确认小米电脑管家能正常打开「小米互传」并传一次文件。如果管家已经升到 **6.0**，请安装 v9.9.9.9（6.0 不再响应旧的 `WM_COPYDATA` 通道，v6.6.6.6 点击会静默无反应）。
 
 **Q：安装报 0x800B0109 / 证书不受信任？**
 A：以管理员身份重新运行 `MiShareMenu.cmd`，让它把证书装进 `LocalMachine\Root`。
