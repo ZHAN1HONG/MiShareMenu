@@ -83,7 +83,7 @@ curl.exe -L --fail --retry 3 -o MiShareMenu.msix ^
 
 ## 📦 安装
 
-把两个文件放到**同一个文件夹**：
+下载 [MiShareMenu-Local.cmd](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu-Local.cmd) 与 [MiShareMenu.msix](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu.msix)，把两个文件放到**同一个文件夹**：
 
 ```text
 MiShareMenu.msix   应用包（约 1.7 MB）
