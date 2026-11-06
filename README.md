@@ -39,6 +39,8 @@
 | **v9.9.9.9**（推荐） | 6.0 及以上 | 一级菜单 · 快捷方式解析 · 多选发送 | [MiShareMenu.msix](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu.msix) |
 | **v6.6.6.6** | 5.x / 4.x | 一级菜单 · 多选发送 | [MiShareMenu.msix](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v6.6.6.6/MiShareMenu.msix) |
 
+> 表里只是应用包，安装还要配套的 `MiShareMenu.cmd`，见下面 [📦 安装](#-安装)。
+
 > [!WARNING]
 > v6.6.6.6 在 6.0 管家上会「菜单能点、但点了没反应」——6.0 不再响应旧的 `WM_COPYDATA` 通道。
 > 管家已升到 6.0 的，请直接选 v9.9.9.9。
@@ -59,18 +61,6 @@ curl.exe -L --fail --retry 3 -o MiShareMenu.msix ^
 
 </details>
 
-## 🖱️ 一键开关（懒人版）
-
-不想手动下载安装包？一个脚本搞定——**自动下载 → 校验 → 安装**，也可以一键卸载清理。
-
-[点此下载 MiShareMenu-Switch.cmd](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu-Switch.cmd)
-
-- 按 `1` 安装：自动从 jsDelivr / GitHub 下载 v9.9.9.9 安装包（约 1.7 MB），实时读取仓库的 [`MiShareMenu.sha256`](MiShareMenu.sha256) 做完整性校验，随后完成证书导入与注册
-- 按 `2` 卸载：自动移除扩展包、预置包、签名证书并清理缓存
-- 主菜单实时显示当前状态（管家组件 / 扩展安装 / 本地缓存）
-
-> 脚本会请求管理员权限（安装 MSIX 与导入证书必需）；下载源国内走 jsDelivr，失败自动切换 GitHub Release。想完全离线安装，仍推荐上面的本地安装方式。
-
 ## 💻 系统要求
 
 | 项目 | 要求 |
@@ -79,11 +69,11 @@ curl.exe -L --fail --retry 3 -o MiShareMenu.msix ^
 | 架构 | x64 |
 | 依赖 | 已安装**小米电脑管家**（需含「小米互传」） |
 
-> 没装管家时菜单仍会出现，但点击无反应；装上管家后即可正常使用。
+> 没装管家时扩展会自动隐藏菜单项，右键里看不到；装好管家后重新右键即可出现。
 
 ## 📦 安装
 
-下载 [MiShareMenu-Local.cmd](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu-Local.cmd) 与 [MiShareMenu.msix](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu.msix)，把两个文件放到**同一个文件夹**：
+下载 [MiShareMenu.msix](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu.msix) 和 [MiShareMenu.cmd](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu.cmd)，放到**同一个文件夹**（两个文件缺一不可）：
 
 ```text
 MiShareMenu.msix   应用包（约 1.7 MB）
@@ -112,6 +102,18 @@ Add-AppxPackage -Path .\MiShareMenu.msix
 安装完成后，选中文件 → 右键，一级菜单里就有「使用小米互传发送」。
 如果没立刻出现，重启一次资源管理器（任务管理器里右键「Windows 资源管理器」→ 重新启动）。
 
+## 🖱️ 一键开关（懒人版）
+
+不想手动下载安装包？一个脚本搞定——**自动下载 → 校验 → 安装**，也可以一键卸载清理。
+
+[点此下载 MiShareMenu-Switch.cmd](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu-Switch.cmd)
+
+- 按 `1` 安装：自动从 jsDelivr / GitHub 下载 v9.9.9.9 安装包（约 1.7 MB），实时读取仓库的 [`MiShareMenu.sha256`](MiShareMenu.sha256) 做完整性校验，随后完成证书导入与注册
+- 按 `2` 卸载：自动移除扩展包、预置包、签名证书并清理缓存
+- 主菜单实时显示当前状态（管家组件 / 扩展安装 / 本地缓存）
+
+> 脚本会请求管理员权限（安装 MSIX 与导入证书必需）；下载源国内走 jsDelivr，失败自动切换 GitHub Release。想完全离线安装，用上面 [📦 安装](#-安装) 的方式即可。
+
 ## 🗑️ 卸载
 
 双击 `MiShareMenu.cmd` → 输入 `2`，脚本会：
@@ -119,6 +121,8 @@ Add-AppxPackage -Path .\MiShareMenu.msix
 1. 移除应用包注册
 2. 移除系统预置包
 3. 移除本机信任的签名证书
+
+卸载完脚本会自动重启资源管理器，右键菜单随即消失。
 
 命令行等价：
 
@@ -149,7 +153,7 @@ Get-AppxPackage -Name MiShareMenu.Extension | Remove-AppxPackage
 ├─ MiShareMenu.cmd                   本地安装器：导入证书、注册应用包（与 msix 同目录）
 ├─ MiShareMenu.msix                  应用包，配合上面的脚本本地直装
 ├─ MiShareMenu.sha256                应用包校验值，一键开关脚本联网实时读取
-├─ Win11 小米互传一级菜单开关.cmd    一键开关脚本：联网下载 → 校验 → 安装 / 卸载
+├─ MiShareMenu-Switch.cmd            一键开关脚本：联网下载 → 校验 → 安装 / 卸载
 │
 ├─ BUILD.md                          构建说明
 └─ README.md                         本文件
@@ -173,7 +177,7 @@ powershell -ExecutionPolicy Bypass -File build\pack.ps1
 
 ## 🔍 文件校验
 
-开关脚本不内置校验值，每次运行时从仓库的 [`MiShareMenu.sha256`](MiShareMenu.sha256) 实时读取、下载后比对，不一致会自动换源重下。手动下载也可以拿下面的值核对：
+`MiShareMenu-Switch.cmd` 不内置校验值，每次运行都从仓库的 [`MiShareMenu.sha256`](MiShareMenu.sha256) 实时读取、下载后比对，不一致会自动换源重下。手动下载的话，可以用下面的值核对：
 
 **v9.9.9.9**
 
@@ -228,6 +232,13 @@ Add-AppxPackage -Path .\MiShareMenu.msix
 <summary><b>安装报 0x800B0101 / 证书不在有效期内？</b></summary>
 
 自签证书有效期为 2020-01-01 ~ 2045-01-01，正常时钟不会触发。若仍报此错，说明目标机器时间被改到了 2020 年之前，先同步系统时间：管理员运行 `w32tm /resync /force`。
+
+</details>
+
+<details>
+<summary><b>双击脚本没反应，或提示需要管理员权限？</b></summary>
+
+安装 / 卸载都要写系统证书库和系统包目录，必须有管理员权限：右键 `MiShareMenu.cmd` →「以管理员身份运行」。标准账户没有管理员密码时无法使用，需要找管理员操作。
 
 </details>
 
