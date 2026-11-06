@@ -1,0 +1,17 @@
+# 构建产物
+bin/
+obj/
+build/out/
+build/layout/
+
+# 签名材料（含私钥，绝不提交）
+build/MiShareMenu.pfx
+build/MiShareMenu.cer
+*.pfx
+*.cer
+*.snk
+
+# IDE / 工具
+.vs/
+*.user
+*.suo

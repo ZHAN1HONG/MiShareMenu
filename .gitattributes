@@ -1,0 +1,9 @@
+*.msix binary
+*.png binary
+*.ico binary
+*.cmd -text
+*.ps1 -text
+
+# 签名材料按二进制处理
+*.pfx binary
+*.cer binary
