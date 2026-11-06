@@ -46,14 +46,16 @@
 > v6.6.6.6 在 6.0 管家上会「菜单能点、但点了没反应」——6.0 不再响应旧的 `WM_COPYDATA` 通道。
 > 管家已升到 6.0 的，请直接选 v9.9.9.9。
 
-国内网络可用 jsDelivr CDN 加速（`@main` 永远指向最新版；也可换成 `@v9.9.9.9`、`@v6.6.6.6` 固定某一版）：
+<details>
+<summary><b>命令行下载 / 国内加速</b></summary>
+
+国内网络走 jsDelivr 更快（`@main` 永远指向最新版，也可换成 `@v9.9.9.9`、`@v6.6.6.6` 固定某一版）：
 
 ```text
 https://cdn.jsdelivr.net/gh/ZHAN1HONG/MiShareMenu@main/MiShareMenu.msix
 ```
 
-<details>
-<summary><b>脚本内直接下载（含重试）</b></summary>
+或者用 curl 直接下（失败自动重试 3 次）：
 
 ```bat
 curl.exe -L --fail --retry 3 -o MiShareMenu.msix ^
