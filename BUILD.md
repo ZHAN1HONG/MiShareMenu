@@ -1,0 +1,87 @@
+# 构建说明
+
+## 环境要求
+
+| 工具 | 用途 | 说明 |
+|---|---|---|
+| [.NET 9 SDK](https://dotnet.microsoft.com/download) | 编译三个项目 | 需要 `net9.0-windows` 目标包 |
+| MSVC C++ 工具链 | NativeAOT 链接 | Visual Studio 2022「使用 C++ 的桌面开发」，或 Build Tools |
+| Windows 10/11 SDK | `makeappx.exe` / `signtool.exe` | 安装 VS 时勾选 Windows SDK 即可 |
+| Windows 11（Build 22000+） | 运行 / 调试 | 一级右键菜单扩展仅 Win11 支持 |
+
+> 没有 MSVC 时 `dotnet publish` 会在链接阶段报 `LNK1104: 无法打开文件 libcmt.lib`。
+
+## 代码结构
+
+完整目录树与各文件职责见 README 的 [目录说明](README.md#-目录说明)，这里只列构建相关的部分：
+
+| 位置 | 作用 |
+|---|---|
+| `build\AppxManifest.xml` | MSIX 清单：Verb、CLSID、版本号都在这里改 |
+| `build\pack.ps1` | 编译 → 汇集 → 打包 → 签名，产出一个可安装的 msix |
+| `build\install.ps1` | 安装本地产物，签名装不上时回退松散注册 |
+| `build\assets\` | MSIX 图标与磁贴资源 |
+
+运行链路：
+
+```text
+资源管理器右键 → dllhost 加载 ShellExt.dll → 写信箱 → 拉起 Launcher.exe
+                                                            ↓
+                                            按管家版本选通道投递路径
+```
+
+> 根目录的 `MiShareMenu.cmd` / `MiShareMenu.ps1` 是给最终用户的安装器（装 Release 里下好的包）；
+> `build\` 下的 `pack.ps1` / `install.ps1` 是开发用脚本，编译本地产物，两者不要混用。
+
+## 构建
+
+在**仓库根目录**执行：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File build\pack.ps1
+```
+
+产物：`build\out\MiShareMenu-<版本>.msix`，版本号取自 `build\AppxManifest.xml` 的 `<Identity Version>`。
+
+工具不在默认位置时可显式指定：
+
+```powershell
+# 分别指定三个工具
+powershell -File build\pack.ps1 -DotNet "C:\dotnet\dotnet.exe" `
+    -MakeAppx "C:\SDK\makeappx.exe" -SignTool "C:\SDK\signtool.exe"
+
+# 或指向一个自带 dotnet / MSVC / SDK 的目录（便携工具链）
+powershell -File build\pack.ps1 -Toolchain "D:\toolchain"
+```
+
+只改清单、不重新编译时加 `-SkipBuild`（复用上次 `build\layout` 里的二进制）。
+
+## 安装 / 卸载
+
+```powershell
+# 安装（需要一个带签名的包）
+powershell -ExecutionPolicy Bypass -File build\install.ps1
+
+# 卸载
+Get-AppxPackage -Name MiShareMenu.Extension | Remove-AppxPackage
+```
+
+## 关于签名证书
+
+`pack.ps1` 会用当前用户证书库里 `CN=ZHAN丶HONG` 的自签证书签名；没有就自动新建一张（有效期 10 年），并导出到 `build\MiShareMenu.pfx` / `.cer`。
+
+- 这两个文件**已被 `.gitignore` 排除，不要提交**（`.pfx` 含私钥）
+- 自签证书装到别的机器上必须先把 `.cer` 导入「受信任的根证书颁发机构」，否则报 `0x800B0109`
+- 换发布者时改 `-CertSubject`，同时同步 `AppxManifest.xml` 的 `Publisher`，两者必须完全一致
+
+## 调试
+
+扩展运行时不写任何日志、不落盘。需要观察菜单行为时，可以用调试器附加到加载本扩展的 `dllhost.exe`，或在本地临时加日志后重编——留意发版前把临时代码改回去。
+
+菜单显隐的判定逻辑在 `src/MiShare.ShellExt/ComCore.cs` 的 `GetState`：管家未安装、或处于「显示更多选项」且检测到官方同名入口时返回 `ECS_HIDDEN`。
+
+## 已知限制
+
+- 只支持 x64；ARM64 未适配
+- 一级菜单图标取 `midrop_logo.ico`，管家目录结构变化时会回退为主程序图标
+- 未装管家时菜单不出现（`GetState` 直接返回 `ECS_HIDDEN`）
