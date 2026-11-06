@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package
+    xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+    xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+    xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+    xmlns:desktop4="http://schemas.microsoft.com/appx/manifest/desktop/windows10/4"
+    xmlns:desktop5="http://schemas.microsoft.com/appx/manifest/desktop/windows10/5"
+    xmlns:com="http://schemas.microsoft.com/appx/manifest/com/windows10"
+    IgnorableNamespaces="uap rescap desktop4 desktop5 com">
+
+  <Identity Name="MiShareMenu.Extension"
+            Publisher="CN=ZHAN丶HONG"
+            Version="9.9.9.9"
+            ProcessorArchitecture="x64" />
+
+  <Properties>
+    <DisplayName>小米互传菜单</DisplayName>
+    <PublisherDisplayName>ZHAN丶HONG</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.22000.0" MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="zh-cn" />
+  </Resources>
+
+  <Applications>
+    <Application Id="MiShareApp"
+                 Executable="Launcher\MiShare.Launcher.exe"
+                 EntryPoint="windows.fullTrustApplication">
+      <uap:VisualElements DisplayName="小米互传菜单"
+                          Description="在文件右键菜单中使用小米互传发送文件"
+                          BackgroundColor="transparent"
+                          Square150x150Logo="Assets\Square150x150Logo.png"
+                          Square44x44Logo="Assets\Square44x44Logo.png">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" />
+        <uap:SplashScreen Image="Assets\SplashScreen.png" />
+      </uap:VisualElements>
+
+      <Extensions>
+        <!-- 打包 COM：dllhost 以代理进程方式加载我们的原生扩展 DLL -->
+        <com:Extension Category="windows.comServer">
+          <com:ComServer>
+            <com:SurrogateServer DisplayName="MiShareMenu Shell Extension">
+              <com:Class Id="8F3A6B21-4C7D-4E9A-9F52-1D6E7B0C3A84"
+                         Path="ShellExt\MiShare.ShellExt.dll"
+                         ThreadingModel="STA" />
+            </com:SurrogateServer>
+          </com:ComServer>
+        </com:Extension>
+
+        <!-- Windows 11 一级右键菜单 -->
+        <desktop4:Extension Category="windows.fileExplorerContextMenus">
+          <desktop4:FileExplorerContextMenus>
+            <desktop4:ItemType Type="*">
+              <desktop4:Verb Id="MiShareSend" Clsid="8F3A6B21-4C7D-4E9A-9F52-1D6E7B0C3A84" />
+            </desktop4:ItemType>
+            <desktop5:ItemType Type="Directory">
+              <desktop5:Verb Id="MiShareSend" Clsid="8F3A6B21-4C7D-4E9A-9F52-1D6E7B0C3A84" />
+            </desktop5:ItemType>
+          </desktop4:FileExplorerContextMenus>
+        </desktop4:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+</Package>
