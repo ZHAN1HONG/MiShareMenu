@@ -1,194 +1,226 @@
-@echo off
-chcp 936 >nul 2>&1
-setlocal EnableExtensions
-cd /d "%~dp0"
-title 小米互传右键菜单
+@echo off&Title Win11 小米互传一级菜单开关
+mode con cols=100 lines=30 & color 3F
+setlocal enabledelayedexpansion
 
-set "SELF=%~f0"
-set "HERE=%~dp0"
-set "MSIX=%HERE%MiShareMenu.msix"
-set "PS1=%HERE%MiShareMenu.ps1"
+:: ============================================================
+:: 全局变量定义
+:: ============================================================
+set "PKGID=MiShareMenu.Extension"
+:: 本地安装包目录
+set "MSIX=%~dp0MiShareMenu.msix"
 
-if /i "%~1"=="/i" goto DO_INSTALL
-if /i "%~1"=="/u" goto DO_UNINSTALL
-if /i "%~1"=="/r" goto DO_RESTART
-if /i "%~1"=="/h" goto HELP
-if /i "%~1"=="/?" goto HELP
-
-:MENU
-cls
-echo ================================================================
-echo    小米互传右键菜单  (Windows 11 x64)
-echo ================================================================
-echo.
-echo     [1]  安装              —— 右键出现「使用小米互传发送」
-echo     [2]  卸载              —— 移除菜单和发送程序
-echo     [3]  重启资源管理器    —— 装好后菜单没出现时用
-echo     [4]  帮助
-echo     [0]  退出
-echo.
-rem 用 choice 替代 set /p：单键选择，不怕误输入和特殊字符
-choice /C 12340 /N /M "请按数字键选择: "
-if errorlevel 5 exit /b 0
-if errorlevel 4 goto HELP
-if errorlevel 3 goto DO_RESTART
-if errorlevel 2 goto PRE_UNINSTALL
-goto PRE_INSTALL
-
-:HELP
-cls
-echo ================================================================
-echo    使用帮助
-echo ================================================================
-echo.
-echo  安装前：Windows 11 64 位 + 已安装「小米电脑管家」并登录。
-echo         没装管家时菜单项会自动隐藏，不会留死菜单。
-echo.
-echo  安装  ：按 1；弹「用户账户控制」点【是】最稳。
-echo          不想授权就点【否】，程序会自动改用开发者模式安装。
-echo  使用  ：选中文件或文件夹 - 右键 - 「使用小米互传发送」。
-echo  卸载  ：按 2。卸载不需要 msix 包在旁边。
-echo  菜单不出现：先按 3 重启资源管理器，仍无则注销重新登录；
-echo          老系统上可能在「显示更多选项」里。
-echo.
-echo  本目录必须同时存在这三个文件才能安装，缺一不可：
-echo    MiShareMenu.cmd    本脚本
-echo    MiShareMenu.ps1    安装/卸载逻辑
-echo    MiShareMenu.msix   应用包
-echo.
-echo  命令行参数： /i 安装    /u 卸载    /r 重启资源管理器    /h 帮助
-echo.
-echo  按任意键返回主菜单...
-pause >nul
-goto MENU
-
-:PRE_INSTALL
-call :CHECK_FILES
-if errorlevel 1 goto MENU
-goto NEED_ADMIN_INSTALL
-
-:PRE_UNINSTALL
-rem 卸载只要求 ps1 在场；msix 缺失时 ps1 会用 LOCALAPPDATA 里留存的包取证书
-call :CHECK_PS1_ONLY
-if errorlevel 1 goto MENU
-goto NEED_ADMIN_UNINSTALL
-
-:NEED_ADMIN_INSTALL
-call :CHECK_ADMIN
-if "%ADMIN%"=="1" goto DO_INSTALL
-echo.
-echo 正在请求管理员权限，请在弹出的窗口点「是」...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath '%SELF%' -ArgumentList '/i' -Verb RunAs"
-if errorlevel 1 goto INSTALL_NOELEV
-exit /b 0
-
-:INSTALL_NOELEV
-echo.
-echo 已取消授权，改为以当前用户身份安装（必要时自动用开发者模式）。
-echo.
-goto DO_INSTALL
-
-:NEED_ADMIN_UNINSTALL
-call :CHECK_ADMIN
-if "%ADMIN%"=="1" goto DO_UNINSTALL
-echo.
-echo 正在请求管理员权限，请在弹出的窗口点「是」...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath '%SELF%' -ArgumentList '/u' -Verb RunAs"
-if errorlevel 1 goto UNINSTALL_NOELEV
-exit /b 0
-
-:UNINSTALL_NOELEV
-echo.
-echo 已取消授权，继续以当前用户身份卸载（管理员证书残留不影响使用）。
-echo.
-goto DO_UNINSTALL
-
-:CHECK_ADMIN
-set "ADMIN=0"
+:: ============================================================
+:: 检查并请求管理员权限
+:: ============================================================
 net session >nul 2>&1
-if not errorlevel 1 set "ADMIN=1"
-if "%ADMIN%"=="1" exit /b 0
-fltmc >nul 2>&1
-if not errorlevel 1 set "ADMIN=1"
-exit /b 0
+if %errorlevel% neq 0 (
+    echo 正在请求管理员权限...
+    powershell -NoProfile -Command "try{ Start-Process -FilePath '%~f0' -Verb RunAs -ErrorAction Stop }catch{ exit 1 }" 2>nul
+    if errorlevel 1 (
+        echo.
+        echo [失败] 获取管理员权限被取消或失败，无法安装 / 卸载扩展！
+        echo [提示] 请右键本脚本，选择「以管理员身份运行」后重试！
+        echo [提示] 若本机没有管理员账户，请联系管理员操作！
+        echo.
+        pause
+    )
+    exit /b
+)
 
-:DO_INSTALL
-cls
-call :CHECK_FILES
-if errorlevel 1 goto END_FAIL
-powershell -NoProfile -ExecutionPolicy Bypass -File "%PS1%" -Action install
-set "RC=%errorlevel%"
-if not "%RC%"=="0" goto INSTALL_FAIL
+:: ============================================================
+:: 检测小米电脑管家互传组件
+:: ============================================================
+set "miFound=0"
+reg query "HKCR\CLSID\{504d69c0-cb52-48df-b5b5-7161829fabc8}\InprocServer32" >nul 2>&1 && set "miFound=1"
+reg query "HKCR\CLSID\{1bca9901-05c3-4d01-8ad4-78da2eac9b3f}\InprocServer32" >nul 2>&1 && set "miFound=1"
+
+:Menu
+Cls
+:: 获取当前状态
+call :GetStatus
+
+echo ============================================================
+echo                Win11 小米互传 一级菜单开关
+echo                 [脚本作者] BY：ZHAN丶HONG
+echo ============================================================
+echo                [状态] 小米电脑管家：%status_mi%
+echo                  [状态] 扩展安装：%status_install%
+echo                  [状态] 本地安装包：%status_pkg%
+echo ============================================================
+echo.&echo.  →→ 1、★★★ 安装 / 开启 ★★★←←
+echo.&echo.  →→ 2、★★★ 卸载 / 关闭 ★★★←←
+echo.&echo.  →→ 0、★★★    退出     ★★★←←
 echo.
-rem Y/N 确认：默认 Y，10 秒不按自动重启
-choice /C YN /N /T 10 /D Y /M "是否现在重启资源管理器让菜单立即生效? [Y/N，10秒后默认Y]: "
-if errorlevel 2 goto INSTALL_DONE
-call :RESTART_EXPLORER
-:INSTALL_DONE
+echo ============================================================
 echo.
-echo 用法：选中文件或文件夹 - 右键 - 「使用小米互传发送」
+set "Choice="
+set /p Choice=√ 请输入选项数字并回车：
+
+if "%Choice%"=="0" exit /b
+if "%Choice%"=="1" Goto Install
+if "%Choice%"=="2" Goto Uninstall
+
+echo.&echo → [提示] 该输入无效，请重新输入！
 echo.
 pause
-exit /b 0
+goto Menu
 
-:INSTALL_FAIL
-echo.
-echo 安装未成功，请把上面的提示截图反馈。
-echo.
-goto END_FAIL
+:: ============================================================
+:: 获取当前状态
+:: ============================================================
+:GetStatus
+:: 小米电脑管家组件状态
+set "status_mi=未安装"
+if "!miFound!"=="1" set "status_mi=已安装"
 
-:DO_UNINSTALL
-cls
-call :CHECK_PS1_ONLY
-if errorlevel 1 goto END_FAIL
-powershell -NoProfile -ExecutionPolicy Bypass -File "%PS1%" -Action uninstall
-set "RC=%errorlevel%"
+:: 扩展安装状态
+set "installed="
+for /f "delims=" %%i in ('powershell -NoProfile -Command "(Get-AppxPackage -AllUsers -Name %PKGID%).Version" 2^>nul') do set "installed=%%i"
+if defined installed (
+    set "status_install=已安装"
+) else (
+    set "status_install=未安装"
+)
+
+:: 本地安装包状态
+set "status_pkg=未找到"
+if exist "%MSIX%" (
+    for %%F in ("%MSIX%") do (
+        if %%~zF GEQ 1000000 set "status_pkg=已就绪"
+    )
+)
+goto :eof
+
+:: ============================================================
+:: 安装 / 开启小米互传
+:: ============================================================
+:Install
+Cls
+echo ============================================================
+echo                    正在安装小米互传扩展
+echo ============================================================
+echo [提示] 正在检查当前小米互传扩展安装状态...
+call :GetStatus
+if /i "!status_install!"=="已安装" (
+    echo [提示] 已安装小米互传扩展：V!installed!
+    echo [提示] 无需重复安装，如需重装请先执行卸载！
+    echo.
+    pause
+    goto Menu
+)
+
+:: 检查本地安装包
+if not exist "%MSIX%" (
+    echo [失败] 未找到 MiShareMenu.msix！
+    echo [提示] 请将安装包与本脚本放在同一目录后再运行。
+    echo.
+    pause
+    goto Menu
+)
+set "pkgsize="
+for %%F in ("%MSIX%") do set "pkgsize=%%~zF"
+if !pkgsize! LSS 1000000 (
+    echo [失败] 安装包不完整（仅 !pkgsize! 字节），请更换完整的 MiShareMenu.msix！
+    echo.
+    pause
+    goto Menu
+)
+for %%F in ("%MSIX%") do echo [提示] 使用本地安装包（%%~zF 字节）...
+goto Register
+
+:Register
+:: 导入证书并注册 MSIX
+echo [提示] 正在导入证书并注册扩展...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "try{ $c=(Get-AuthenticodeSignature -FilePath '%MSIX%').SignerCertificate; if(-not $c){ throw 'NO_CERT' }; $f=Join-Path $env:TEMP 'MiShareMenu.cer'; [IO.File]::WriteAllBytes($f,$c.RawData); Import-Certificate -FilePath $f -CertStoreLocation Cert:\LocalMachine\Root -ErrorAction SilentlyContinue | Out-Null; Import-Certificate -FilePath $f -CertStoreLocation Cert:\LocalMachine\TrustedPeople -ErrorAction SilentlyContinue | Out-Null; Add-AppxPackage -Path '%MSIX%' -ErrorAction Stop }catch{ Write-Output ('INSTALL_FAIL: ' + $_.Exception.Message) }"
+
+:: 验证安装结果
 echo.
-choice /C YN /N /T 10 /D Y /M "是否现在重启资源管理器? [Y/N，10秒后默认Y]: "
-if errorlevel 2 goto UNINSTALL_DONE
-call :RESTART_EXPLORER
-:UNINSTALL_DONE
+echo [提示] 正在验证安装结果...
+call :GetStatus
+if /i "!status_install!"=="已安装" (
+    echo [成功] 小米互传扩展安装成功！
+    echo [信息] 当前版本：V!installed!
+) else (
+    echo [失败] 小米互传扩展安装失败！
+    echo [提示] 常见原因：证书未导入成功 / 未开启开发者模式！
+    echo.
+    pause
+    goto Menu
+)
+
+echo.
+echo [完成] 小米互传扩展已安装完成！
+echo [提示] 右键任意文件，一级菜单即显示小米互传！
 echo.
 pause
-exit /b %RC%
+goto Menu
 
-:DO_RESTART
-call :RESTART_EXPLORER
-echo 资源管理器已重启。
+:: ============================================================
+:: 卸载 / 关闭小米互传
+:: ============================================================
+:Uninstall
+Cls
+echo ============================================================
+echo                    正在卸载小米互传扩展
+echo ============================================================
+echo [提示] 正在检查当前小米互传扩展安装状态...
+call :GetStatus
+if /i "!status_install!"=="未安装" (
+    echo [提示] 当前未安装小米互传扩展！
+    echo [提示] 无需卸载，如需安装请先执行安装！
+    echo.
+    pause
+    goto Menu
+)
+
+echo.
+echo 即将执行【卸载小米互传扩展】涉及如下！
+echo 1. 移除扩展包注册
+echo 2. 移除系统暂存包
+echo 3. 移除导入的证书
+echo.
+choice /C YN /M "确认卸载小米互传扩展吗"
+if errorlevel 2 (
+    echo [提示] 已取消！
+    echo.
+    pause
+    goto Menu
+)
+
+echo.
+:: 移除扩展包注册
+echo [1/3] 正在移除扩展包注册...
+powershell -NoProfile -Command "try{ $p = (Get-AppxPackage -AllUsers -Name %PKGID%).PackageFullName; if (-not $p) { Write-Output '[信息] EXT_NOT_FOUND' } else { Remove-AppxPackage -Package $p -AllUsers -ErrorAction Stop; Write-Output ('[信息] REMOVED: ' + $p) } }catch{ Write-Output ('[信息] REMOVE_FAIL: ' + $_.Exception.Message) }"
+
+:: 移除系统暂存包
+echo [2/3] 正在移除系统暂存包...
+powershell -NoProfile -Command "Get-AppxProvisionedPackage -Online | Where-Object { $_.PackageName -like '*8t4hnfycfsk2p*' } | ForEach-Object { Remove-AppxProvisionedPackage -Online -PackageName $_.PackageName | Out-Null }" >nul 2>&1
+
+:: 移除导入的证书
+echo [3/3] 正在移除导入的证书...
+powershell -NoProfile -Command "Get-ChildItem Cert:\LocalMachine\TrustedPeople | Where-Object { $_.Subject -eq 'CN=ZHAN丶HONG' } | ForEach-Object { Remove-Item $_.PSPath -Force }" >nul 2>&1
+
+:: 验证卸载结果
+echo.
+echo [提示] 正在验证卸载结果...
+call :GetStatus
+if /i "!status_install!"=="未安装" (
+    echo [成功] 小米互传扩展卸载成功！
+) else (
+    echo [失败] 小米互传扩展卸载失败！
+    echo [提示] 当前仍安装版本：!status_install!
+    echo.
+    pause
+    goto Menu
+)
+
+:: 重启资源管理器
+echo [提示] 正在重启资源管理器以生效...
+taskkill /f /IM explorer.exe >nul 2>&1
+start explorer.exe
+
+echo.
+echo [完成] 小米互传扩展已卸载完成！
 echo.
 pause
-exit /b 0
-
-:RESTART_EXPLORER
-echo.
-echo 正在重启资源管理器...
-"%SystemRoot%\System32\taskkill.exe" /f /im explorer.exe >nul 2>&1
-"%SystemRoot%\System32\timeout.exe" /t 2 /nobreak >nul
-start "" explorer.exe
-"%SystemRoot%\System32\timeout.exe" /t 3 /nobreak >nul
-exit /b 0
-
-:CHECK_FILES
-if exist "%MSIX%" goto CHECK_PS1_ONLY
-echo.
-echo [错误] 缺少文件：MiShareMenu.msix
-echo        请把 MiShareMenu.msix 与本脚本放在同一个文件夹内。
-echo.
-echo 按任意键返回主菜单...
-pause >nul
-exit /b 1
-
-:CHECK_PS1_ONLY
-if exist "%PS1%" exit /b 0
-echo.
-echo [错误] 缺少文件：MiShareMenu.ps1
-echo        请把 MiShareMenu.ps1 与本脚本放在同一个文件夹内。
-echo.
-echo 按任意键返回主菜单...
-pause >nul
-exit /b 1
-
-:END_FAIL
-echo.
-pause
-exit /b 1
+goto Menu

@@ -30,7 +30,7 @@
                                             按管家版本选通道投递路径
 ```
 
-> 根目录的 `MiShareMenu.cmd` / `MiShareMenu.ps1` 是给最终用户的安装器（装 Release 里下好的包）；
+> 根目录的 `MiShareMenu.cmd` 是给最终用户的本地安装器（与 `MiShareMenu.msix` 同目录使用）；
 > `build\` 下的 `pack.ps1` / `install.ps1` 是开发用脚本，编译本地产物，两者不要混用。
 
 ## 构建

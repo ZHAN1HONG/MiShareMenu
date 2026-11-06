@@ -61,7 +61,7 @@ curl.exe -L --fail --retry 3 -o MiShareMenu.msix ^
 
 ## 🖱️ 一键开关（懒人版）
 
-不想手动下载三件套？一个脚本搞定——**自动下载 → 校验 → 安装**，也可以一键卸载清理。
+不想手动下载安装包？一个脚本搞定——**自动下载 → 校验 → 安装**，也可以一键卸载清理。
 
 [点此下载 MiShareMenu-Switch.cmd](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu-Switch.cmd)
 
@@ -69,7 +69,7 @@ curl.exe -L --fail --retry 3 -o MiShareMenu.msix ^
 - 按 `2` 卸载：自动移除扩展包、预置包、签名证书并清理缓存
 - 主菜单实时显示当前状态（管家组件 / 扩展安装 / 本地缓存）
 
-> 脚本会请求管理员权限（安装 MSIX 与导入证书必需）；下载源国内走 jsDelivr，失败自动切换 GitHub Release。想完全离线安装，仍推荐上面的三件套方式。
+> 脚本会请求管理员权限（安装 MSIX 与导入证书必需）；下载源国内走 jsDelivr，失败自动切换 GitHub Release。想完全离线安装，仍推荐上面的本地安装方式。
 
 ## 💻 系统要求
 
@@ -83,12 +83,11 @@ curl.exe -L --fail --retry 3 -o MiShareMenu.msix ^
 
 ## 📦 安装
 
-把三个文件放到**同一个文件夹**：
+把两个文件放到**同一个文件夹**：
 
 ```text
 MiShareMenu.msix   应用包（约 1.7 MB）
-MiShareMenu.cmd    启动器 / 菜单
-MiShareMenu.ps1    安装、卸载逻辑
+MiShareMenu.cmd    本地安装器（导入证书、注册应用包）
 ```
 
 双击 `MiShareMenu.cmd` → 输入 `1` → UAC 点「是」，完成。
@@ -111,7 +110,7 @@ Add-AppxPackage -Path .\MiShareMenu.msix
 </details>
 
 安装完成后，选中文件 → 右键，一级菜单里就有「使用小米互传发送」。
-如果没立刻出现，运行 `MiShareMenu.cmd` 选 `3` 重启资源管理器。
+如果没立刻出现，重启一次资源管理器（任务管理器里右键「Windows 资源管理器」→ 重新启动）。
 
 ## 🗑️ 卸载
 
@@ -120,7 +119,6 @@ Add-AppxPackage -Path .\MiShareMenu.msix
 1. 移除应用包注册
 2. 移除系统预置包
 3. 移除本机信任的签名证书
-4. 清理 `%LOCALAPPDATA%\MiShareMenu` 缓存
 
 命令行等价：
 
@@ -148,10 +146,9 @@ Get-AppxPackage -Name MiShareMenu.Extension | Remove-AppxPackage
 │
 ├─ assets/                           仓库展示素材（README 顶部 logo）
 │
-├─ MiShareMenu.cmd                   启动器 / 菜单：安装、卸载、重启资源管理器
-├─ MiShareMenu.ps1                   启动器背后的安装与卸载逻辑
-├─ MiShareMenu.msix                  应用包，配合上面两个文件本地直装
-├─ MiShareMenu.sha256                应用包校验值，脚本运行时实时读取
+├─ MiShareMenu.cmd                   本地安装器：导入证书、注册应用包（与 msix 同目录）
+├─ MiShareMenu.msix                  应用包，配合上面的脚本本地直装
+├─ MiShareMenu.sha256                应用包校验值，一键开关脚本联网实时读取
 ├─ Win11 小米互传一级菜单开关.cmd    一键开关脚本：联网下载 → 校验 → 安装 / 卸载
 │
 ├─ BUILD.md                          构建说明
