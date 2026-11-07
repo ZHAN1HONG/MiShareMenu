@@ -35,12 +35,12 @@
 
 按你的**小米电脑管家版本**选一个：
 
-| 版本 | 适用管家 | 版本能力 | 下载 |
+| 版本 | 适用管家 | 版本能力 | 下载（两个文件都要） |
 |---|---|---|---|
-| **v9.9.9.9**（推荐） | 6.0 及以上 | 一级菜单 · 快捷方式解析 · 多选发送 | [MiShareMenu.msix](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu.msix) |
-| **v6.6.6.6** | 5.x / 4.x | 一级菜单 · 快捷方式解析 · 多选发送 | [MiShareMenu.msix](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v6.6.6.6/MiShareMenu.msix) |
+| **v9.9.9.9**（推荐） | 6.0 及以上 | 一级菜单 · 快捷方式解析 · 多选发送 | [MiShareMenu.msix](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu.msix)<br>[MiShareMenu.cmd](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu.cmd) |
+| **v6.6.6.6** | 5.x / 4.x | 一级菜单 · 快捷方式解析 · 多选发送 | [MiShareMenu.msix](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v6.6.6.6/MiShareMenu.msix)<br>[MiShareMenu.cmd](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v6.6.6.6/MiShareMenu.cmd) |
 
-> 表里只是应用包，安装还要配套的 `MiShareMenu.cmd`，见下面 [📦 安装](#-安装)。
+> `MiShareMenu.msix` 是应用包，`MiShareMenu.cmd` 是配套安装器，两个缺一不可；用法见下面 [📦 安装](#-安装)。
 
 > [!NOTE]
 > 两个包是同一份代码，只有版本号不同；两者都会自动识别管家版本，6.0+ 与 5.x / 4.x 都能用。
@@ -60,6 +60,8 @@ https://cdn.jsdelivr.net/gh/ZHAN1HONG/MiShareMenu@main/MiShareMenu.msix
 ```bat
 curl.exe -L --fail --retry 3 -o MiShareMenu.msix ^
   https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu.msix
+curl.exe -L --fail --retry 3 -o MiShareMenu.cmd ^
+  https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu.cmd
 ```
 
 </details>
