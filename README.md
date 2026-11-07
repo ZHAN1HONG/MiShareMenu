@@ -38,13 +38,13 @@
 | 版本 | 适用管家 | 版本能力 | 下载 |
 |---|---|---|---|
 | **v9.9.9.9**（推荐） | 6.0 及以上 | 一级菜单 · 快捷方式解析 · 多选发送 | [MiShareMenu.msix](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu.msix) |
-| **v6.6.6.6** | 5.x / 4.x | 一级菜单 · 多选发送 | [MiShareMenu.msix](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v6.6.6.6/MiShareMenu.msix) |
+| **v6.6.6.6** | 5.x / 4.x | 一级菜单 · 快捷方式解析 · 多选发送 | [MiShareMenu.msix](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v6.6.6.6/MiShareMenu.msix) |
 
 > 表里只是应用包，安装还要配套的 `MiShareMenu.cmd`，见下面 [📦 安装](#-安装)。
 
-> [!WARNING]
-> v6.6.6.6 在 6.0 管家上会「菜单能点、但点了没反应」——6.0 不再响应旧的 `WM_COPYDATA` 通道。
-> 管家已升到 6.0 的，请直接选 v9.9.9.9。
+> [!NOTE]
+> 两个包是同一份代码，只有版本号不同；两者都会自动识别管家版本，6.0+ 与 5.x / 4.x 都能用。
+> 拿不准就装 v9.9.9.9。
 
 <details>
 <summary><b>命令行下载 / 国内加速</b></summary>
@@ -198,7 +198,7 @@ SHA256  9333776669664a29fd5b59a87399ff35a01f771a828bf996defe200b30a57518  MiShar
 <details>
 <summary><b>菜单出现了，但点击没反应？</b></summary>
 
-先确认小米电脑管家能正常打开「小米互传」并传一次文件。管家已升到 **6.0** 的话，请安装 v9.9.9.9——6.0 不再响应旧的 `WM_COPYDATA` 通道，v6.6.6.6 点击会静默无反应。
+先确认小米电脑管家能正常打开「小米互传」并传一次文件。仍无反应的话，重启一次资源管理器再试；也可以在管家设置里确认「小米互传」已开启。
 
 </details>
 
