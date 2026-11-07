@@ -1,6 +1,4 @@
 # 构建产物
-bin/
-obj/
 build/out/
 build/layout/
 
@@ -15,3 +13,9 @@ build/MiShareMenu.cer
 .vs/
 *.user
 *.suo
+
+# 发送进程编出来的二进制（由 build/launcher/Launcher.cpp 编译）
+build/launcher/*.exe
+
+# 扩展 DLL（由 build/shellext/ShellExt.cpp 编译）
+build/shellext/*.dll

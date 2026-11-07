@@ -4,12 +4,11 @@
 
 | 工具 | 用途 | 说明 |
 |---|---|---|
-| [.NET 9 SDK](https://dotnet.microsoft.com/download) | 编译三个项目 | 需要 `net9.0-windows` 目标包 |
-| MSVC C++ 工具链 | NativeAOT 链接 | Visual Studio 2022「使用 C++ 的桌面开发」，或 Build Tools |
-| Windows 10/11 SDK | `makeappx.exe` / `signtool.exe` | 安装 VS 时勾选 Windows SDK 即可 |
+| [MinGW-w64](https://github.com/brechtsanders/winlibs_mingw/releases) g++ | 编译两个 C++ 源文件 | 任选一套 x86_64 + UCRT 的发行包，或 MSYS2 的 `mingw-w64-x86_64-gcc` |
+| Windows 10/11 SDK | `makeappx.exe` / `signtool.exe` | 只用来打包与签名；装 VS 时勾选 Windows SDK 即可 |
 | Windows 11（Build 22000+） | 运行 / 调试 | 一级右键菜单扩展仅 Win11 支持 |
 
-> 没有 MSVC 时 `dotnet publish` 会在链接阶段报 `LNK1104: 无法打开文件 libcmt.lib`。
+> 全部代码都是 C++，编译只需要 g++ 一个工具；不依赖 .NET SDK、MSVC 或 vcvars 环境。
 
 ## 代码结构
 
@@ -20,12 +19,14 @@
 | `build\AppxManifest.xml` | MSIX 清单：Verb、CLSID、版本号都在这里改 |
 | `build\pack.ps1` | 编译 → 汇集 → 打包 → 签名，产出一个可安装的 msix |
 | `build\install.ps1` | 安装本地产物，签名装不上时回退松散注册 |
+| `build\launcher\Launcher.cpp` | 发送进程：定位管家、解析快捷方式、投递路径，编成约 30KB 原生 EXE |
+| `build\shellext\ShellExt.cpp` | 右键菜单扩展：COM 入口、`IExplorerCommand`、信箱写入，编成约 27KB 原生 DLL |
 | `build\assets\` | MSIX 图标与磁贴资源 |
 
 运行链路：
 
 ```text
-资源管理器右键 → dllhost 加载 ShellExt.dll → 写信箱 → 拉起 Launcher.exe
+资源管理器右键 → dllhost 加载 ShellExt.dll → 写信箱 → 拉起 Launcher.exe（C++ 原生）
                                                             ↓
                                             按管家版本选通道投递路径
 ```
@@ -46,13 +47,17 @@ powershell -ExecutionPolicy Bypass -File build\pack.ps1
 工具不在默认位置时可显式指定：
 
 ```powershell
-# 分别指定三个工具
-powershell -File build\pack.ps1 -DotNet "C:\dotnet\dotnet.exe" `
-    -MakeAppx "C:\SDK\makeappx.exe" -SignTool "C:\SDK\signtool.exe"
+# 分别指定工具
+powershell -File build\pack.ps1 `
+    -MakeAppx "C:\SDK\makeappx.exe" -SignTool "C:\SDK\signtool.exe" `
+    -MinGW "C:\mingw64\bin\g++.exe"
 
-# 或指向一个自带 dotnet / MSVC / SDK 的目录（便携工具链）
+# 或指向一个自带 mingw / SDK 的目录（便携工具链）
 powershell -File build\pack.ps1 -Toolchain "D:\toolchain"
 ```
+
+`g++` 的查找顺序：`-MinGW` 指定值 → `-Toolchain\mingw\mingw64\bin\g++.exe` → 系统 `PATH`。
+两个产物都静态链接、只依赖系统 DLL（UCRT 属于 Win10+ 自带组件），不需要附带任何运行时。
 
 只改清单、不重新编译时加 `-SkipBuild`（复用上次 `build\layout` 里的二进制）。
 
@@ -78,7 +83,7 @@ Get-AppxPackage -Name MiShareMenu.Extension | Remove-AppxPackage
 
 扩展运行时不写任何日志、不落盘。需要观察菜单行为时，可以用调试器附加到加载本扩展的 `dllhost.exe`，或在本地临时加日志后重编——留意发版前把临时代码改回去。
 
-菜单显隐的判定逻辑在 `src/MiShare.ShellExt/ComCore.cs` 的 `GetState`：管家未安装、或处于「显示更多选项」且检测到官方同名入口时返回 `ECS_HIDDEN`。
+菜单显隐的判定逻辑在 `build\shellext\ShellExt.cpp` 的 `Command::GetState`：管家未安装、或处于「显示更多选项」且检测到官方同名入口时返回 `ECS_HIDDEN`。
 
 ## 已知限制
 

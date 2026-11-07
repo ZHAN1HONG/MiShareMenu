@@ -86,7 +86,7 @@ if defined installed (
 set "status_pkg=未找到"
 if exist "%MSIX%" (
     for %%F in ("%MSIX%") do (
-        if %%~zF GEQ 1000000 set "status_pkg=已就绪"
+        if %%~zF GEQ 50000 set "status_pkg=已就绪"
     )
 )
 goto :eof
@@ -119,7 +119,7 @@ if not exist "%MSIX%" (
 )
 set "pkgsize="
 for %%F in ("%MSIX%") do set "pkgsize=%%~zF"
-if !pkgsize! LSS 1000000 (
+if !pkgsize! LSS 50000 (
     echo [失败] 安装包不完整（仅 !pkgsize! 字节），请更换完整的 MiShareMenu.msix！
     echo.
     pause

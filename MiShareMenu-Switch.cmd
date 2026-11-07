@@ -82,7 +82,7 @@ if defined installed (
 set "status_cache=未缓存"
 if exist "%MSIX%" (
     for %%F in ("%MSIX%") do (
-        if %%~zF GEQ 1000000 set "status_cache=已缓存"
+        if %%~zF GEQ 50000 set "status_cache=已缓存"
     )
 )
 goto :eof
@@ -113,7 +113,7 @@ call :FetchSha
 
 :: 检查本地缓存
 set "useMSIX=0"
-if exist "%MSIX%" for %%F in ("%MSIX%") do if %%~zF GEQ 1000000 set "useMSIX=1"
+if exist "%MSIX%" for %%F in ("%MSIX%") do if %%~zF GEQ 50000 set "useMSIX=1"
 
 if "!useMSIX!"=="1" (
     for %%F in ("%MSIX%") do echo [提示] 检测到本地缓存（%%~zF 字节），正在校验...
@@ -124,7 +124,7 @@ if "!useMSIX!"=="1" (
 )
 
 :: 下载扩展包
-echo [提示] 正在下载安装包（约 2 MB）...
+echo [提示] 正在下载安装包（约 70 KB）...
 echo [提示] 当前下载源为 jsDelivr ...
 curl.exe -L --progress-bar --retry 3 --connect-timeout 15 --max-time 300 -o "%MSIX%" "%URL1%"
 if not errorlevel 1 (
@@ -310,7 +310,7 @@ set "verifyOK=0"
 set "fsize="
 for %%F in ("%MSIX%") do set "fsize=%%~zF"
 if not defined fsize exit /b 0
-if !fsize! LSS 1000000 (
+if !fsize! LSS 50000 (
     echo [警告] 下载不完整（仅 !fsize! 字节）
     exit /b 0
 )

@@ -3,13 +3,13 @@
 # 用法（在仓库根目录）：
 #   powershell -ExecutionPolicy Bypass -File build\pack.ps1
 #
-# 依赖：.NET 9 SDK、MSVC C++ 工具链（NativeAOT 链接用）、Windows SDK（makeappx / signtool）
-# 上述工具若不在默认位置，可用 -DotNet / -MakeAppx / -SignTool / -Toolchain 指定。
+# 依赖：MinGW-w64 g++（编译发送进程与扩展 DLL）、Windows SDK（makeappx / signtool）
+# 上述工具若不在默认位置，可用 -MinGW / -MakeAppx / -SignTool / -Toolchain 指定。
 param(
-    [string]$DotNet = "",
     [string]$MakeAppx = "",
     [string]$SignTool = "",
     [string]$Toolchain = "",
+    [string]$MinGW = "",
     [string]$CertSubject = "CN=ZHAN丶HONG",
     [string]$CertPassword = "MiShareMenu",
     [switch]$SkipBuild
@@ -23,21 +23,6 @@ $outDir = Join-Path $scriptDir "out"
 
 if (-not $Toolchain) { $Toolchain = $env:MISHARE_TOOLCHAIN }
 if ($Toolchain -and -not (Test-Path $Toolchain)) { throw "Toolchain 目录不存在: $Toolchain" }
-
-# ---- dotnet ----
-if (-not $DotNet) {
-    if ($Toolchain) {
-        $candidate = Join-Path $Toolchain "dotnet\dotnet.exe"
-        if (Test-Path $candidate) { $DotNet = $candidate }
-    }
-    if (-not $DotNet) {
-        $cmd = Get-Command dotnet -ErrorAction SilentlyContinue
-        if ($cmd) { $DotNet = $cmd.Source }
-    }
-}
-if (-not $DotNet -or -not (Test-Path $DotNet)) {
-    throw "找不到 dotnet.exe。请安装 .NET 9 SDK，或用 -DotNet 指定路径"
-}
 
 # ---- makeappx / signtool ----
 if (-not $MakeAppx -or -not $SignTool) {
@@ -74,100 +59,67 @@ if (-not $MakeAppx -or -not $SignTool) {
 if (-not (Test-Path $MakeAppx)) { throw "找不到 makeappx.exe，请安装 Windows SDK 或用 -MakeAppx 指定路径" }
 if (-not (Test-Path $SignTool)) { throw "找不到 signtool.exe，请安装 Windows SDK 或用 -SignTool 指定路径" }
 
-# ---- NativeAOT 链接工具链 ----
-# 手动指定 link.exe + LIB，避免依赖 vcvars 环境；没配置也能编，只是可能找不到 libcmt.lib
-$aotArgs = @()
-$msvcRoots = @()
-if ($Toolchain) {
-    # 精简工具链：编译器和 CRT 导入库分开放
-    foreach ($rel in @("vcpkg\tools\Contents\VC\Tools\MSVC", "vcpkg\crt\Contents\VC\Tools\MSVC")) {
-        $p = Join-Path $Toolchain $rel
-        if (Test-Path $p) { $msvcRoots += $p }
-    }
-} else {
-    # 已安装的 Visual Studio / Build Tools
-    $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
-    if (Test-Path $vswhere) {
-        $vsPath = & $vswhere -latest -products * `
-            -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
-            -property installationPath
-        if ($vsPath) { $msvcRoots += (Join-Path $vsPath "VC\Tools\MSVC") }
-    }
-}
-
-foreach ($root in $msvcRoots) {
-    $ver = Get-ChildItem $root -Directory -ErrorAction SilentlyContinue |
-        Sort-Object Name -Descending | Select-Object -First 1
-    if (-not $ver) { continue }
-
-    $binDir = Join-Path $ver.FullName "bin\Hostx64\x64"
-    if (-not (Test-Path (Join-Path $binDir "link.exe"))) { continue }
-
-    $env:PATH = "$binDir;$env:PATH"
-    $libDirs = @()
-
-    # 所有 MSVC 根下的 lib\x64 都要加：精简包里编译器和 CRT 的 .lib 是分开放的
-    foreach ($r in $msvcRoots) {
-        $v = Get-ChildItem $r -Directory -ErrorAction SilentlyContinue |
-            Sort-Object Name -Descending | Select-Object -First 1
-        if (-not $v) { continue }
-        $lib = Join-Path $v.FullName "lib\x64"
-        if ((Test-Path $lib) -and ($libDirs -notcontains $lib)) { $libDirs += $lib }
-    }
-
+# ---- MinGW 工具链 ----
+if (-not $MinGW) {
     if ($Toolchain) {
-        # 精简包的 SDK 导入库单独放在 sdklibs 下
-        foreach ($lib in @("sdklibs\c\um\x64", "sdklibs\c\ucrt\x64")) {
-            $p = Join-Path $Toolchain $lib
-            if ((Test-Path $p) -and ($libDirs -notcontains $p)) { $libDirs += $p }
-        }
-    } else {
-        # 正式 SDK 的 um / ucrt 导入库
-        $kitsLib = Join-Path ${env:ProgramFiles(x86)} "Windows Kits\10\Lib"
-        if (Test-Path $kitsLib) {
-            $sdkVer = Get-ChildItem $kitsLib -Directory -ErrorAction SilentlyContinue |
-                Sort-Object Name -Descending | Select-Object -First 1
-            if ($sdkVer) {
-                foreach ($sub in @("um\x64", "ucrt\x64")) {
-                    $p = Join-Path $sdkVer.FullName $sub
-                    if ((Test-Path $p) -and ($libDirs -notcontains $p)) { $libDirs += $p }
-                }
-            }
-        }
+        $candidate = Join-Path $Toolchain "mingw\mingw64\bin\g++.exe"
+        if (Test-Path $candidate) { $MinGW = $candidate }
     }
-
-    $env:LIB = $libDirs -join ";"
-    $aotArgs += "-p:IlcUseEnvironmentalTools=true"
-    Write-Host "  使用 MSVC 工具链: $($ver.Name)" -ForegroundColor DarkGray
-    break
+    if (-not $MinGW) {
+        $cmd = Get-Command g++ -ErrorAction SilentlyContinue
+        if ($cmd) { $MinGW = $cmd.Source }
+    }
+}
+if (-not $MinGW -or -not (Test-Path $MinGW)) {
+    throw "找不到 g++。请安装 MinGW-w64，或用 -MinGW 指定 g++.exe 的完整路径"
 }
 
-Write-Host "== 1/5 发布 Launcher（NativeAOT 原生 EXE）==" -ForegroundColor Cyan
+# 静态链接 + 按函数分段后丢弃未引用段：产物只依赖系统 DLL
+$commonFlags = @(
+    "-std=c++17", "-Os", "-s",
+    "-DWIN32_LEAN_AND_MEAN", "-DUNICODE", "-D_UNICODE",
+    "-ffunction-sections", "-fdata-sections",
+    "-fno-exceptions", "-fno-rtti", "-fno-threadsafe-statics",
+    "-static", "-static-libgcc",
+    "-Wl,--gc-sections", "-Wl,--no-insert-timestamp"
+)
+
+Write-Host "== 1/4 编译 Launcher（C++ 原生 EXE）==" -ForegroundColor Cyan
+$launcherSrc = Join-Path $scriptDir "launcher\Launcher.cpp"
+$launcherOut = Join-Path $layout "Launcher\MiShare.Launcher.exe"
+
 if (-not $SkipBuild) {
-    & $DotNet publish (Join-Path $repoRoot "src\MiShare.Launcher\MiShare.Launcher.csproj") `
-        -c Release -r win-x64 -o (Join-Path $layout "Launcher") --nologo -v m @aotArgs
-    if ($LASTEXITCODE -ne 0) { throw "Launcher 发布失败" }
-}
+    $launcherDir = Split-Path -Parent $launcherOut
+    New-Item -ItemType Directory -Force -Path $launcherDir | Out-Null
+    Get-ChildItem $launcherDir -File -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
 
-Write-Host "== 2/5 发布 ShellExt（NativeAOT 原生 DLL）==" -ForegroundColor Cyan
+    & $MinGW @commonFlags -municode -mwindows -o $launcherOut $launcherSrc `
+        -lole32 -lshell32 -lshlwapi -luuid -lversion
+    if ($LASTEXITCODE -ne 0) { throw "Launcher 编译失败" }
+}
+if (-not (Test-Path $launcherOut)) { throw "找不到 Launcher 产物：$launcherOut" }
+
+Write-Host "== 2/4 编译 ShellExt（C++ 原生 DLL，由 dllhost 加载）==" -ForegroundColor Cyan
+$shellExtSrc = Join-Path $scriptDir "shellext\ShellExt.cpp"
+$shellExtOut = Join-Path $layout "ShellExt\MiShare.ShellExt.dll"
+
 if (-not $SkipBuild) {
-    & $DotNet publish (Join-Path $repoRoot "src\MiShare.ShellExt\MiShare.ShellExt.csproj") `
-        -c Release -r win-x64 -o (Join-Path $layout "ShellExt") --nologo -v m @aotArgs
-    if ($LASTEXITCODE -ne 0) { throw "ShellExt 发布失败" }
-}
+    $shellExtDir = Split-Path -Parent $shellExtOut
+    New-Item -ItemType Directory -Force -Path $shellExtDir | Out-Null
+    Get-ChildItem $shellExtDir -File -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
 
-Write-Host "== 3/5 汇集包内容 ==" -ForegroundColor Cyan
+    & $MinGW @commonFlags -shared -o $shellExtOut $shellExtSrc `
+        -lole32 -lshell32 -lshlwapi -ladvapi32 -luuid
+    if ($LASTEXITCODE -ne 0) { throw "ShellExt 编译失败" }
+}
+if (-not (Test-Path $shellExtOut)) { throw "找不到 ShellExt 产物：$shellExtOut" }
+
+Write-Host "== 3/4 汇集包内容并导出签名证书 ==" -ForegroundColor Cyan
 Copy-Item (Join-Path $scriptDir "AppxManifest.xml") (Join-Path $layout "AppxManifest.xml") -Force
 New-Item -ItemType Directory -Force -Path (Join-Path $layout "Assets") | Out-Null
 Copy-Item (Join-Path $scriptDir "assets\*") (Join-Path $layout "Assets") -Force
-# 清掉调试符号等无关文件，减小包体（必须用 -LiteralPath 逐个删，管道输入在部分环境会被拦截）
-Get-ChildItem $layout -Recurse -Filter *.pdb -File | ForEach-Object {
-    Remove-Item -LiteralPath $_.FullName -Force -ErrorAction SilentlyContinue
-}
-$leftPdb = @(Get-ChildItem $layout -Recurse -Filter *.pdb -File)
-if ($leftPdb.Count -gt 0) { Write-Host "  [警告] 仍有 $($leftPdb.Count) 个 pdb 未清理" -ForegroundColor Yellow }
 
-Write-Host "== 4/5 生成签名证书 ==" -ForegroundColor Cyan
+# .pfx / .cer 含私钥或可用来验签，已被 .gitignore 排除，不要提交
 $cert = Get-ChildItem Cert:\CurrentUser\My -ErrorAction SilentlyContinue |
     Where-Object { $_.Subject -eq $CertSubject -and $_.HasPrivateKey } | Select-Object -First 1
 
@@ -182,14 +134,13 @@ if (-not $cert) {
     Write-Host "  已创建自签名证书 $($cert.Thumbprint)"
 }
 
-# .pfx / .cer 含私钥或可用来验签，已被 .gitignore 排除，不要提交
 $pfx = Join-Path $scriptDir "MiShareMenu.pfx"
 $cer = Join-Path $scriptDir "MiShareMenu.cer"
 $securePwd = ConvertTo-SecureString -String $CertPassword -Force -AsPlainText
 Export-PfxCertificate -Cert $cert -FilePath $pfx -Password $securePwd | Out-Null
 Export-Certificate -Cert $cert -FilePath $cer | Out-Null
 
-Write-Host "== 5/5 打包并签名 ==" -ForegroundColor Cyan
+Write-Host "== 4/4 打包并签名 ==" -ForegroundColor Cyan
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 # 输出文件名带上清单里的版本号，避免不同版本的包混在同一目录里分不清
 $manifestVersion = ([xml](Get-Content (Join-Path $layout "AppxManifest.xml") -Raw -Encoding UTF8)).Package.Identity.Version
@@ -204,8 +155,7 @@ if ($LASTEXITCODE -ne 0) { throw "signtool 失败" }
 
 $size = [math]::Round((Get-Item $msix).Length / 1MB, 2)
 $sha = (Get-FileHash $msix -Algorithm SHA256).Hash.ToLower()
-$installCmd = 'powershell -ExecutionPolicy Bypass -File "{0}\install.ps1"' -f $scriptDir
 Write-Host ""
 Write-Host "打包完成: $msix ($size MB)" -ForegroundColor Green
 Write-Host "SHA256: $sha" -ForegroundColor Green
-Write-Host "安装: $installCmd" -ForegroundColor Gray
+Write-Host "安装: powershell -ExecutionPolicy Bypass -File `"$(Join-Path $scriptDir 'install.ps1')`"" -ForegroundColor Gray
