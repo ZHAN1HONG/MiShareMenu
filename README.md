@@ -189,8 +189,8 @@ SHA256  de81fc6bbee90bb6e1797c4de24575050c2f0c664410725c329c13fc11160024  MiShar
 **v6.6.6.6**
 
 ```text
-MD5     fb3cafe106df286bb35c139602df9387  MiShareMenu.msix
-SHA256  aae634e937982007c2a5fee8d96817778b02f530a07f85cb943bbc3b1b625ff6  MiShareMenu.msix
+MD5     9f1ae9ef0d8a4062cf07607ebfcea38c  MiShareMenu.msix
+SHA256  9333776669664a29fd5b59a87399ff35a01f771a828bf996defe200b30a57518  MiShareMenu.msix
 ```
 
 ## ❓ 常见问题
