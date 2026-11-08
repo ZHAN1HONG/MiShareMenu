@@ -31,7 +31,7 @@
                                             按管家版本选通道投递路径
 ```
 
-> 根目录的 `MiShareMenu.cmd` 是给最终用户的本地安装器（与 `MiShareMenu.msix` 同目录使用）；
+> 根目录的 `MiShareMenu.cmd` 是给最终用户的本地安装器（与 `MiShareMenu.msix` 同目录使用），`MiShareMenu-Switch.cmd` 是同类的联网版（自己下包、校验、安装）；
 > `build\` 下的 `pack.ps1` / `install.ps1` 是开发用脚本，负责编译、打包与安装本地产物；两套脚本用途不同，不要混用。
 
 ## 构建
@@ -73,7 +73,7 @@ Get-AppxPackage -Name MiShareMenu.Extension | Remove-AppxPackage
 
 ## 关于签名证书
 
-`pack.ps1` 会用当前用户证书库里 `CN=ZHAN丶HONG` 的自签证书签名；没有就自动新建一张（有效期 10 年），并导出到 `build\MiShareMenu.pfx` / `.cer`。
+`pack.ps1` 会用当前用户证书库里 `CN=ZHAN丶HONG` 的自签证书签名；没有就自动新建一张（默认 10 年，年数写死在 `pack.ps1` 的 `-NotAfter` 里），并导出到 `build\MiShareMenu.pfx` / `.cer`。仓库现用的那张是 2020 年签发的 25 年期证书，到 2045-01-01 到期。
 
 - 这两个文件**已被 `.gitignore` 排除，不要提交**（`.pfx` 含私钥）
 - 自签证书装到别的机器上必须先把 `.cer` 导入「受信任的根证书颁发机构」，否则报 `0x800B0109`
@@ -81,7 +81,7 @@ Get-AppxPackage -Name MiShareMenu.Extension | Remove-AppxPackage
 
 ## 调试
 
-扩展运行时不写日志、不落盘。需要观察菜单行为时，可用调试器附加到加载本扩展的 `dllhost.exe`，或临时加日志后重新编译——发版前记得把这些临时代码撤掉。
+扩展运行时不写日志，只往 `%LOCALAPPDATA%\MiShareMenu\queue` 写一个只含路径的队列文件（`Launcher` 读完即删），不会在你的文件上留下任何痕迹。需要观察菜单行为时，可用调试器附加到加载本扩展的 `dllhost.exe`，或临时加日志后重新编译——发版前记得把这些临时代码撤掉。
 
 菜单显隐的判定逻辑在 `build\shellext\ShellExt.cpp` 的 `Command::GetState`：管家未安装、或处于「显示更多选项」且检测到官方同名入口时返回 `ECS_HIDDEN`。
 

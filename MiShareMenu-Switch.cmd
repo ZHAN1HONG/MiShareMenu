@@ -177,7 +177,7 @@ if /i "!status_install!"=="已安装" (
     echo [信息] 当前版本：V!installed!
 ) else (
     echo [失败] 小米互传扩展安装失败！
-    echo [提示] 常见原因：证书未导入成功 / 未开启开发者模式！
+    echo [提示] 常见原因：证书未受信任 / 被系统策略或安全软件拦截！
     echo.
     pause
     goto Menu

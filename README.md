@@ -30,16 +30,18 @@
 - **嵌套快捷方式** — 快捷方式指向快捷方式也能逐层解析，最多 5 层
 - **新旧管家通吃** — 自动识别管家版本选择投递方式，4.x / 5.x 与 6.0 及以上都能用
 - **装完即用** — MSIX 打包，内置文件资源管理器右键菜单扩展（`windows.fileExplorerContextMenus`）
+- **不重复** — 二级菜单里已有官方同名入口时，本扩展会隐藏自己那条，不会出现两个「小米互传」
+- **只转路径** — 交给管家的只是一行路径文本，源文件不会被复制或改写
 
 ## 📥 下载
 
-只有一个版本，装它就对了——同一个安装包会自动识别管家版本，4.x / 5.x 与 6.0 及以上都适用：
+只有一个安装包，它会自动识别管家版本，4.x / 5.x 与 6.0 及以上通用：
 
-| 版本 | 适用管家 | 版本能力 | 下载（两个文件都要） |
+| 版本 | 适用管家 | 版本能力 | 下载 |
 |---|---|---|---|
 | **v9.9.9.9** | 4.x / 5.x / 6.0 及以上 | 一级菜单 · 快捷方式解析 · 多选发送 | [MiShareMenu.msix](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu.msix)<br>[MiShareMenu.cmd](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu.cmd) |
 
-> `MiShareMenu.msix` 是应用包，`MiShareMenu.cmd` 是配套安装器，两个缺一不可；用法见下面 [📦 安装](#-安装)。
+> `MiShareMenu.msix` 是应用包，`MiShareMenu.cmd` 是配套安装器，离线安装两个都要。不想下包也可以只下 [MiShareMenu-Switch.cmd](#-一键开关联网自动安装) 一个文件，由脚本联网取包。
 
 <details>
 <summary><b>命令行下载 / 国内加速</b></summary>
@@ -73,7 +75,7 @@ curl.exe -L --fail --retry 3 -o MiShareMenu.cmd ^
 
 ## 📦 安装
 
-下载 [MiShareMenu.msix](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu.msix) 和 [MiShareMenu.cmd](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu.cmd)，放到**同一个文件夹**（两个文件缺一不可）：
+下载 [MiShareMenu.msix](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu.msix) 和 [MiShareMenu.cmd](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu.cmd)，放到**同一个文件夹**：
 
 ```text
 MiShareMenu.msix   应用包（约 70 KB）
@@ -86,7 +88,7 @@ MiShareMenu.cmd    本地安装器（导入证书、注册应用包）
 <summary><b>手动安装（管理员 PowerShell）</b></summary>
 
 ```powershell
-# 1) 信任包内自签名证书（脚本会自动做，这里给出等价命令）
+# 1) 信任包内自签名证书（脚本会自动执行，以下为等价命令）
 $sig = Get-AuthenticodeSignature .\MiShareMenu.msix
 $tmp = Join-Path $env:TEMP 'MiShareMenu.cer'
 [IO.File]::WriteAllBytes($tmp, $sig.SignerCertificate.RawData)
@@ -108,7 +110,7 @@ Add-AppxPackage -Path .\MiShareMenu.msix
 
 [点此下载 MiShareMenu-Switch.cmd](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu-Switch.cmd)
 
-- 按 `1` 安装：自动从 jsDelivr / GitHub 下载 v9.9.9.9 安装包（约 70 KB），实时读取仓库的 [`MiShareMenu.sha256`](MiShareMenu.sha256) 做完整性校验，随后完成证书导入与注册
+- 按 `1` 安装：自动从 jsDelivr / GitHub 下载最新版安装包（当前 v9.9.9.9，约 70 KB），实时读取仓库的 [`MiShareMenu.sha256`](MiShareMenu.sha256) 做完整性校验，随后完成证书导入与注册
 - 按 `2` 卸载：自动移除扩展包与签名证书，并清理下载缓存
 - 主菜单实时显示当前状态（管家组件 / 扩展安装 / 本地缓存）
 
@@ -141,7 +143,7 @@ Get-AppxPackage -Name MiShareMenu.Extension | Remove-AppxPackage
 │  ├─ pack.ps1                       编译 → 汇集 → 打包 → 签名
 │  ├─ install.ps1                    安装 / 卸载，签名装不上时回退松散注册
 │  ├─ launcher/                      发送进程（C++ 单文件，编成约 30KB 原生 EXE）
-│  ├─ shellext/                      右键菜单扩展（C++ 单文件，编成约 30KB 原生 DLL）
+│  ├─ shellext/                      右键菜单扩展（C++ 单文件，编成约 27KB 原生 DLL）
 │  └─ assets/                        应用图标与磁贴资源
 │
 ├─ assets/                           仓库展示素材（README 顶部 logo）
