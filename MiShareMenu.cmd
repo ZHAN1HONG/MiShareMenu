@@ -13,17 +13,9 @@ set "MSIX=%~dp0MiShareMenu.msix"
 :: 检查并请求管理员权限
 :: ============================================================
 net session >nul 2>&1
-if errorlevel 1 (
+if %errorlevel% neq 0 (
     echo 正在请求管理员权限...
-    powershell -NoProfile -Command "try{ Start-Process -FilePath '%~f0' -Verb RunAs -ErrorAction Stop }catch{ exit 1 }" 2>nul
-    if errorlevel 1 (
-        echo.
-        echo [失败] 获取管理员权限被取消或失败，无法安装 / 卸载扩展！
-        echo [提示] 请右键本脚本，选择「以管理员身份运行」后重试！
-        echo [提示] 若本机没有管理员账户，请联系管理员操作！
-        echo.
-        pause
-    )
+    powershell -NoProfile -Command "Start-Process -FilePath '%~f0' -Verb RunAs" 2>nul
     exit /b
 )
 
@@ -44,8 +36,8 @@ echo                Win11 小米互传 一级菜单开关
 echo                 [脚本作者] BY：ZHAN丶HONG
 echo ============================================================
 echo                [状态] 小米电脑管家：%status_mi%
+echo                 [状态] 本地安装包：%status_pkg%
 echo                  [状态] 扩展安装：%status_install%
-echo                  [状态] 本地安装包：%status_pkg%
 echo ============================================================
 echo.&echo.  →→ 1、★★★ 安装 / 开启 ★★★←←
 echo.&echo.  →→ 2、★★★ 卸载 / 关闭 ★★★←←
@@ -55,7 +47,6 @@ echo ============================================================
 echo.
 set "Choice="
 set /p Choice=√ 请输入选项数字并回车：
-for /f "delims=0123456789" %%a in ("!Choice!") do set "Choice="
 
 if "%Choice%"=="0" exit /b
 if "%Choice%"=="1" Goto Install
@@ -76,7 +67,6 @@ if "!miFound!"=="1" set "status_mi=已安装"
 
 :: 扩展安装状态
 set "installed="
-:: 直查注册表取版本，毫秒级（原先要起一个子进程解释器，得等一秒上下）
 for /f "delims=" %%L in ('reg query "HKCU\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\Repository\Packages" /f "%PKGID%_*" /k 2^>nul ^| findstr /i /c:"%PKGID%"') do (
     for /f "tokens=2 delims=_" %%v in ("%%~nxL") do set "installed=%%v"
 )
@@ -107,7 +97,7 @@ echo [提示] 正在检查当前小米互传扩展安装状态...
 call :GetStatus
 if /i "!status_install!"=="已安装" (
     echo [提示] 已安装小米互传扩展：V!installed!
-    echo [提示] 无需重复安装，如需重装或更换版本请先执行卸载！
+    echo [提示] 无需重复安装，如需重装请先执行卸载！
     echo.
     pause
     goto Menu
@@ -116,7 +106,7 @@ if /i "!status_install!"=="已安装" (
 :: 检查本地安装包
 if not exist "%MSIX%" (
     echo [失败] 未找到 MiShareMenu.msix！
-    echo [提示] 请将安装包与本脚本放在同一目录后再运行。
+    echo [提示] 请将安装包与本脚本放在同一目录后再运行！
     echo.
     pause
     goto Menu
@@ -124,7 +114,8 @@ if not exist "%MSIX%" (
 set "pkgsize=0"
 for %%F in ("%MSIX%") do set "pkgsize=%%~zF"
 if !pkgsize! LSS 50000 (
-    echo [失败] 安装包不完整（仅 !pkgsize! 字节），请更换完整的 MiShareMenu.msix！
+    echo [失败] 安装包不完整（仅 !pkgsize! 字节）！
+    echo [失败] 请更换完整的 MiShareMenu.msix！
     echo.
     pause
     goto Menu
@@ -134,7 +125,7 @@ for %%F in ("%MSIX%") do echo [提示] 使用本地安装包（%%~zF 字节）...
 :Register
 :: 导入证书并注册 MSIX
 echo [提示] 正在导入证书并注册扩展...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "try{ $c=(Get-AuthenticodeSignature -FilePath '%MSIX%').SignerCertificate; if(-not $c){ throw 'NO_CERT' }; $f=Join-Path $env:TEMP 'MiShareMenu.cer'; [IO.File]::WriteAllBytes($f,$c.RawData); Import-Certificate -FilePath $f -CertStoreLocation Cert:\LocalMachine\Root -ErrorAction SilentlyContinue | Out-Null; Import-Certificate -FilePath $f -CertStoreLocation Cert:\LocalMachine\TrustedPeople -ErrorAction SilentlyContinue | Out-Null; Add-AppxPackage -Path '%MSIX%' -ErrorAction Stop; Remove-Item $f -Force -ErrorAction SilentlyContinue }catch{ Remove-Item (Join-Path $env:TEMP 'MiShareMenu.cer') -Force -ErrorAction SilentlyContinue; Write-Output ('INSTALL_FAIL: ' + $_.Exception.Message) }"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "try{ $c=(Get-AuthenticodeSignature -FilePath '%MSIX%').SignerCertificate; if(-not $c){ throw 'NO_CERT' }; $f=Join-Path $env:TEMP 'MiShareMenu.cer'; [IO.File]::WriteAllBytes($f,$c.RawData); Import-Certificate -FilePath $f -CertStoreLocation Cert:\LocalMachine\Root -ErrorAction SilentlyContinue | Out-Null; Import-Certificate -FilePath $f -CertStoreLocation Cert:\LocalMachine\TrustedPeople -ErrorAction SilentlyContinue | Out-Null; Add-AppxPackage -Path '%MSIX%' -ErrorAction Stop; Remove-Item $f -Force -ErrorAction SilentlyContinue }catch{ Remove-Item (Join-Path $env:TEMP 'MiShareMenu.cer') -Force -ErrorAction SilentlyContinue; Write-Output ('安装失败：' + $_.Exception.Message) }"
 
 :: 验证安装结果
 echo.
@@ -154,7 +145,6 @@ if /i "!status_install!"=="已安装" (
 echo.
 echo [完成] 小米互传扩展已安装完成！
 echo [提示] 右键任意文件，一级菜单即显示小米互传！
-echo [提示] 若菜单未出现，请重新打开资源管理器窗口或重启电脑。
 echo.
 pause
 goto Menu
@@ -180,8 +170,7 @@ if /i "!status_install!"=="未安装" (
 echo.
 echo 即将执行【卸载小米互传扩展】涉及如下！
 echo 1. 移除扩展包注册
-echo 2. 移除系统暂存包
-echo 3. 移除导入的证书
+echo 2. 移除导入的证书
 echo.
 choice /C YN /M "确认卸载小米互传扩展吗"
 if errorlevel 2 (
@@ -193,16 +182,12 @@ if errorlevel 2 (
 
 echo.
 :: 移除扩展包注册
-echo [1/3] 正在移除扩展包注册...
-powershell -NoProfile -Command "try{ $p = @(Get-AppxPackage -AllUsers -Name %PKGID%); if ($p.Count -eq 0) { Write-Output '[信息] EXT_NOT_FOUND' } else { foreach ($i in $p) { Remove-AppxPackage -Package $i.PackageFullName -AllUsers -ErrorAction Stop; Write-Output ('[信息] REMOVED: ' + $i.PackageFullName) } } }catch{ Write-Output ('[信息] REMOVE_FAIL: ' + $_.Exception.Message) }"
-
-:: 移除系统暂存包
-echo [2/3] 正在移除系统暂存包...
-powershell -NoProfile -Command "Get-AppxProvisionedPackage -Online | Where-Object { $_.PackageName -like 'MiShareMenu.Extension*' } | ForEach-Object { Remove-AppxProvisionedPackage -Online -PackageName $_.PackageName | Out-Null }" >nul 2>&1
+echo [1/2] 正在移除扩展包注册...
+powershell -NoProfile -Command "try{ $p = @(Get-AppxPackage -AllUsers -Name %PKGID%); if ($p.Count -eq 0) { Write-Output '[信息] 未找到扩展包' } else { foreach ($i in $p) { Remove-AppxPackage -Package $i.PackageFullName -AllUsers -ErrorAction Stop; Write-Output ('[信息] 移除成功：' + $i.PackageFullName) } } }catch{ Write-Output ('[信息] 移除失败：' + $_.Exception.Message) }"
 
 :: 移除导入的证书
-echo [3/3] 正在移除导入的证书...
-powershell -NoProfile -Command "foreach ($s in 'Root','TrustedPeople') { Get-ChildItem ('Cert:\LocalMachine\' + $s) | Where-Object { $_.Subject -like 'CN=ZHAN丶HONG*' } | ForEach-Object { Remove-Item $_.PSPath -Force -ErrorAction SilentlyContinue } }" >nul 2>&1
+echo [2/2] 正在移除导入的证书...
+powershell -NoProfile -Command "try{ $n=0; foreach ($s in 'Root','TrustedPeople') { $c = @(Get-ChildItem ('Cert:\LocalMachine\' + $s) -ErrorAction SilentlyContinue | Where-Object { $_.Subject -like 'CN=ZHAN丶HONG*' }); foreach ($i in $c) { Remove-Item $i.PSPath -Force -ErrorAction SilentlyContinue; if ($?) { $n++ } } }; if ($n -eq 0) { Write-Output '[信息] 未找到导入的证书' } else { Write-Output ('[信息] 证书移除成功：' + $n + ' 张') } }catch{ Write-Output ('[信息] 证书移除失败：' + $_.Exception.Message) }"
 
 :: 验证卸载结果
 echo.

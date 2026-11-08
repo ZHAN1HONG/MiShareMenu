@@ -114,7 +114,7 @@ Add-AppxPackage -Path .\MiShareMenu.msix
 [点此下载 MiShareMenu-Switch.cmd](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu-Switch.cmd)
 
 - 按 `1` 安装：自动从 jsDelivr / GitHub 下载 v9.9.9.9 安装包（约 70 KB），实时读取仓库的 [`MiShareMenu.sha256`](MiShareMenu.sha256) 做完整性校验，随后完成证书导入与注册
-- 按 `2` 卸载：自动移除扩展包、预置包、签名证书并清理缓存
+- 按 `2` 卸载：自动移除扩展包与签名证书，并清理下载缓存
 - 主菜单实时显示当前状态（管家组件 / 扩展安装 / 本地缓存）
 
 > 脚本会请求管理员权限（安装 MSIX 与导入证书必需）；下载源国内走 jsDelivr，失败自动切换 GitHub Release。想完全离线安装，用上面 [📦 安装](#-安装) 的方式即可。
@@ -124,8 +124,7 @@ Add-AppxPackage -Path .\MiShareMenu.msix
 双击 `MiShareMenu.cmd` → 输入 `2`，脚本会：
 
 1. 移除应用包注册
-2. 移除系统预置包
-3. 移除本机信任的签名证书
+2. 移除本机信任的签名证书
 
 卸载完脚本会自动重启资源管理器，右键菜单随即消失。
 
