@@ -32,7 +32,7 @@
 ```
 
 > 根目录的 `MiShareMenu.cmd` 是给最终用户的本地安装器（与 `MiShareMenu.msix` 同目录使用）；
-> `build\` 下的 `pack.ps1` / `install.ps1` 是开发用脚本，编译本地产物，两者不要混用。
+> `build\` 下的 `pack.ps1` / `install.ps1` 是开发用脚本，负责编译、打包与安装本地产物；两套脚本用途不同，不要混用。
 
 ## 构建
 
