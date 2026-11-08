@@ -9,7 +9,7 @@
 选中文件或文件夹 → 右键 → 点一下，路径交给本机已装好的**小米电脑管家**，
 由它弹出设备选择窗口完成传输。
 
-[![版本](https://img.shields.io/badge/版本-6.6.6.6%20%7C%209.9.9.9-blue)](#-下载)
+[![版本](https://img.shields.io/badge/版本-9.9.9.9-blue)](#-下载)
 [![平台](https://img.shields.io/badge/平台-Windows%2011%20x64-0078D4)](#-系统要求)
 [![体积](https://img.shields.io/badge/应用包-约%2070%20KB-success)](#-特性)
 [![License](https://img.shields.io/badge/许可-仅供学习交流-lightgrey)](#-免责声明)
@@ -28,28 +28,23 @@
 - **支持多选** — 选中多个文件 / 文件夹一起发送
 - **快捷方式直达** — 右键 `.lnk` 时自动解析目标，实际发送的是它指向的文件 / 文件夹，与官方菜单行为一致；一级 / 二级菜单都生效，目标失效时回落发送快捷方式本身
 - **嵌套快捷方式** — 快捷方式指向快捷方式也能逐层解析，最多 5 层
-- **新旧管家通吃** — 自动识别管家版本选择投递方式，5.x 与 6.0+ 都支持
+- **新旧管家通吃** — 自动识别管家版本选择投递方式，4.x / 5.x 与 6.0 及以上都能用
 - **装完即用** — MSIX 打包，内置文件资源管理器右键菜单扩展（`windows.fileExplorerContextMenus`）
 
 ## 📥 下载
 
-按你的**小米电脑管家版本**选一个：
+只有一个版本，装它就对了——同一个安装包会自动识别管家版本，4.x / 5.x 与 6.0 及以上都适用：
 
 | 版本 | 适用管家 | 版本能力 | 下载（两个文件都要） |
 |---|---|---|---|
-| **v9.9.9.9**（推荐） | 6.0 及以上 | 一级菜单 · 快捷方式解析 · 多选发送 | [MiShareMenu.msix](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu.msix)<br>[MiShareMenu.cmd](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu.cmd) |
-| **v6.6.6.6** | 5.x / 4.x | 一级菜单 · 快捷方式解析 · 多选发送 | [MiShareMenu.msix](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v6.6.6.6/MiShareMenu.msix)<br>[MiShareMenu.cmd](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v6.6.6.6/MiShareMenu.cmd) |
+| **v9.9.9.9** | 4.x / 5.x / 6.0 及以上 | 一级菜单 · 快捷方式解析 · 多选发送 | [MiShareMenu.msix](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu.msix)<br>[MiShareMenu.cmd](https://github.com/ZHAN1HONG/MiShareMenu/releases/download/v9.9.9.9/MiShareMenu.cmd) |
 
 > `MiShareMenu.msix` 是应用包，`MiShareMenu.cmd` 是配套安装器，两个缺一不可；用法见下面 [📦 安装](#-安装)。
-
-> [!NOTE]
-> 两个包是同一份代码，只有版本号不同；两者都会自动识别管家版本，6.0+ 与 5.x / 4.x 都能用。
-> 拿不准就装 v9.9.9.9。
 
 <details>
 <summary><b>命令行下载 / 国内加速</b></summary>
 
-国内网络走 jsDelivr 更快（`@main` 永远指向最新版，也可换成 `@v9.9.9.9`、`@v6.6.6.6` 固定某一版）：
+国内网络走 jsDelivr 更快（`@main` 永远指向最新版，也可换成 `@v9.9.9.9` 固定版本）：
 
 ```text
 https://cdn.jsdelivr.net/gh/ZHAN1HONG/MiShareMenu@main/MiShareMenu.msix
@@ -126,7 +121,7 @@ Add-AppxPackage -Path .\MiShareMenu.msix
 1. 移除应用包注册
 2. 移除本机信任的签名证书
 
-卸载完脚本会自动重启资源管理器，右键菜单随即消失。
+卸载完成后脚本会自动重启资源管理器，右键菜单随即消失。
 
 命令行等价：
 
@@ -152,7 +147,7 @@ Get-AppxPackage -Name MiShareMenu.Extension | Remove-AppxPackage
 ├─ assets/                           仓库展示素材（README 顶部 logo）
 │
 ├─ MiShareMenu.cmd                   本地安装器：导入证书、注册应用包（与 msix 同目录）
-├─ MiShareMenu.msix                  应用包，配合上面的脚本本地直装
+├─ MiShareMenu.msix                  应用包，配合 MiShareMenu.cmd 本地直装
 ├─ MiShareMenu.sha256                应用包校验值，一键开关脚本联网实时读取
 ├─ MiShareMenu-Switch.cmd            一键开关脚本：联网下载 → 校验 → 安装 / 卸载
 │
@@ -180,18 +175,9 @@ powershell -ExecutionPolicy Bypass -File build\pack.ps1
 
 `MiShareMenu-Switch.cmd` 不内置校验值，每次运行都从仓库的 [`MiShareMenu.sha256`](MiShareMenu.sha256) 实时读取、下载后比对，不一致会自动换源重下。手动下载的话，可以用下面的值核对：
 
-**v9.9.9.9**
-
 ```text
 MD5     95680df1e76f52fb2ed5ef192525f04c  MiShareMenu.msix
 SHA256  de81fc6bbee90bb6e1797c4de24575050c2f0c664410725c329c13fc11160024  MiShareMenu.msix
-```
-
-**v6.6.6.6**
-
-```text
-MD5     9f1ae9ef0d8a4062cf07607ebfcea38c  MiShareMenu.msix
-SHA256  9333776669664a29fd5b59a87399ff35a01f771a828bf996defe200b30a57518  MiShareMenu.msix
 ```
 
 ## ❓ 常见问题

@@ -81,7 +81,7 @@ Get-AppxPackage -Name MiShareMenu.Extension | Remove-AppxPackage
 
 ## 调试
 
-扩展运行时不写任何日志、不落盘。需要观察菜单行为时，可以用调试器附加到加载本扩展的 `dllhost.exe`，或在本地临时加日志后重编——留意发版前把临时代码改回去。
+扩展运行时不写日志、不落盘。需要观察菜单行为时，可用调试器附加到加载本扩展的 `dllhost.exe`，或临时加日志后重新编译——发版前记得把这些临时代码撤掉。
 
 菜单显隐的判定逻辑在 `build\shellext\ShellExt.cpp` 的 `Command::GetState`：管家未安装、或处于「显示更多选项」且检测到官方同名入口时返回 `ECS_HIDDEN`。
 
