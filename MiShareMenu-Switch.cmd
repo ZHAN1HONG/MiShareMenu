@@ -80,7 +80,10 @@ if "!miFound!"=="1" set "status_mi=已安装"
 
 :: 扩展安装状态
 set "installed="
-for /f "delims=" %%i in ('powershell -NoProfile -Command "(Get-AppxPackage -AllUsers -Name %PKGID%).Version" 2^>nul') do set "installed=%%i"
+:: 直查注册表取版本，毫秒级（原先要起一个子进程解释器，得等一秒上下）
+for /f "delims=" %%L in ('reg query "HKCU\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\Repository\Packages" /f "%PKGID%_*" /k 2^>nul ^| findstr /i /c:"%PKGID%"') do (
+    for /f "tokens=2 delims=_" %%v in ("%%~nxL") do set "installed=%%v"
+)
 if defined installed (
     set "status_install=已安装"
 ) else (
